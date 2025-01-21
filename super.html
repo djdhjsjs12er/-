@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Сколько осталось времени?</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background-color: #f4f4f9;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 600px;
+      margin: auto;
+    }
+    select, input[type="number"], input[type="time"] {
+      padding: 10px;
+      font-size: 16px;
+      margin: 10px 0;
+      width: 80%;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    .hidden {
+      display: none;
+    }
+    .output {
+      margin-top: 20px;
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Сколько осталось времени?</h1>
+    <p>Сначала выберите месяц и день:</p>
+    
+    <!-- Выбор месяца -->
+    <select id="month" onchange="updateDays()">
+      <option value="" disabled selected>Выберите месяц</option>
+      <option value="0">Январь</option>
+      <option value="1">Февраль</option>
+      <option value="2">Март</option>
+      <option value="3">Апрель</option>
+      <option value="4">Май</option>
+      <option value="5">Июнь</option>
+      <option value="6">Июль</option>
+      <option value="7">Август</option>
+      <option value="8">Сентябрь</option>
+      <option value="9">Октябрь</option>
+      <option value="10">Ноябрь</option>
+      <option value="11">Декабрь</option>
+    </select>
+
+    <!-- Выбор дня -->
+    <select id="day">
+      <option value="" disabled selected>Выберите день</option>
+    </select>
+
+    <!-- Кнопка "Добавить год" -->
+    <button id="addYearBtn" onclick="showYearInput()">Добавить год</button>
+
+    <!-- Поле для ввода года -->
+    <input type="number" id="year" class="hidden" placeholder="Введите год (например, 2025)" min="2023">
+
+    <!-- Кнопка "Добавить время" -->
+    <button id="addTimeBtn" onclick="showTimeInput()">Добавить время</button>
+
+    <!-- Поле для выбора времени -->
+    <input type="time" id="time" class="hidden">
+
+    <button onclick="calculateTime()">Узнать</button>
+    <div class="output" id="output"></div>
+  </div>
+
+  <script>
+    // Обновление списка дней в зависимости от выбранного месяца
+    function updateDays() {
+      const month = document.getElementById("month").value;
+      const daySelect = document.getElementById("day");
+      daySelect.innerHTML = '<option value="" disabled selected>Выберите день</option>';
+
+      const daysInMonth = [
+        31, // Январь
+        28, // Февраль
+        31, // Март
+        30, // Апрель
+        31, // Май
+        30, // Июнь
+        31, // Июль
+        31, // Август
+        30, // Сентябрь
+        31, // Октябрь
+        30, // Ноябрь
+        31  // Декабрь
+      ];
+
+      // Учет високосного года для февраля
+      if (month === "1") {
+        const yearInput = document.getElementById("year");
+        const year = yearInput && !yearInput.classList.contains("hidden") ? parseInt(yearInput.value) : new Date().getFullYear();
+        if ((year % 4 === 0 && year % 100 !== 0) || year % 400 === 0) {
+          daysInMonth[1] = 29;
+        }
+      }
+
+      for (let i = 1; i <= daysInMonth[month]; i++) {
+        const option = document.createElement("option");
+        option.value = i;
+        option.textContent = i;
+        daySelect.appendChild(option);
+      }
+    }
+
+    // Показать поле для ввода года
+    function showYearInput() {
+      const yearInput = document.getElementById("year");
+      const addYearBtn = document.getElementById("addYearBtn");
+      yearInput.classList.remove("hidden");
+      addYearBtn.classList.add("hidden");
+    }
+
+    // Показать поле для выбора времени
+    function showTimeInput() {
+      const timeInput = document.getElementById("time");
+      const addTimeBtn = document.getElementById("addTimeBtn");
+      timeInput.classList.remove("hidden");
+      addTimeBtn.classList.add("hidden");
+    }
+
+    // Рассчитать время до указанной даты
+    function calculateTime() {
+      const day = document.getElementById("day").value;
+      const month = document.getElementById("month").value;
+      const yearInput = document.getElementById("year").value;
+      const timeInput = document.getElementById("time").value;
+
+      const outputDiv = document.getElementById("output");
+      outputDiv.innerHTML = "Расчёт времени...";
+
+      if (!day || !month) {
+        outputDiv.innerHTML = "Пожалуйста, выберите месяц и день.";
+        return;
+      }
+
+      // Использовать текущий год, если пользователь не добавил год
+      const year = yearInput ? yearInput : new Date().getFullYear();
+
+      // Использовать начало дня, если пользователь не добавил время
+      const [hours, minutes] = timeInput ? timeInput.split(":").map(Number) : [0, 0];
+      const targetDate = new Date(year, month, day, hours, minutes);
+
+      const now = new Date();
+      const diff = targetDate - now;
+
+      if (diff <= 0) {
+        outputDiv.innerHTML = "Указанная дата уже прошла!";
+      } else {
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+        outputDiv.innerHTML = `
+          До указанной даты осталось:<br>
+          ${days} дней, ${hours} часов, ${minutes} минут, ${seconds} секунд.
+        `;
+      }
+    }
+  </script>
+</body>
+</html>
